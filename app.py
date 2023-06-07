@@ -5,6 +5,7 @@ from flask import Flask, send_file, send_from_directory, render_template, reques
 from operations.operations import *
 from operations.createDataframe import saveJsonData
 import json
+from operations.analysis1 import *
 
 app = Flask(__name__)
 
@@ -31,9 +32,33 @@ def upload():
     # print(type(request))
     # print(request)
     data = request.json
+    
     saveJsonData(data)
     return jsonify({'message': 'File uploaded and data saved'})
 
+@app.route('/api/analysis1', methods=['POST'])
+def analysis1():
+    # Assume 'data' contains the parsed CSV data as a list or dictionary
+    # print(type(request))
+    # print(request)
+    data = request.json
+
+    finalData = Analysis1(data)
+    return finalData
+
+@app.route('/api/get_image', methods=['GET'])
+def get_image():
+
+    image_path = request.args.get('path')
+
+    return send_file(image_path, mimetype='image/png')
+
+@app.route('/api/get_text', methods=['GET'])
+def get_text():
+
+    file_path = request.args.get('path')
+
+    return send_file(file_path, mimetype='text/plain')
 
 
 if __name__ == '__main__':

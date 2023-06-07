@@ -5,7 +5,8 @@
 
 .navbar {
     justify-content: left;
-    align-items: flex-end;
+    align-items: flex-start;
+
 }
 
 .small-section {
@@ -25,11 +26,22 @@
 .preview {
     width: 100vw;
     height: 70vh;
-    background-color: rgb(231, 231, 231);
+    /* background-color: rgb(231, 231, 231); */
     display: flex;
-    flex-direction: column;
     justify-content: top;
     /* align-items: center; */
+}
+
+#descriptive-overview {
+    justify-content: left;
+    flex-direction: column;
+
+
+}
+
+#data-preview {
+    flex-direction: column;
+
 }
 
 .data-adjustments-container {
@@ -60,3 +72,88 @@
     margin: 15px;
 
 }
+
+
+.image-container-row {
+    display: flex;
+    margin: 10px;
+}
+
+#heatmap-container {
+    width: 40vw;
+}
+
+#hist-container {
+    width: 50vw;
+}
+
+#box-container {
+    width: 50vw;
+}
+
+#hist-container2 {
+    width: 50vw;
+}
+
+#box-container2 {
+    width: 50vw;
+}
+
+
+.chart-small {
+    min-width: 0;
+    flex: auto;
+    border-radius: 10px;
+}
+
+.chart-small:hover {
+
+    transform: scale(1.5);
+    transition: transform .5s ease-in-out;
+    
+  
+}
+
+.chart {
+    min-width: 0;
+    flex: auto;
+    border-radius: 10px;
+}
+
+.chart:hover {
+
+    transform: scale(1.2);
+    transition: transform .5s ease-in-out;
+  
+}
+
+
+#table-container {
+    display: flex;
+    max-width: 50%;
+    
+}
+
+
+.highlight {
+    color: yellow;
+    font-weight: bold;
+}
+
+.enlarged-chart {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1;
+    /* width: 60vw; */
+    height: 70vh;
+    width: auto;
+    cursor: pointer;
+    display: block;
+  }
+
+  td {
+    max-height: 100px; /* Set the maximum height as desired */
+    overflow: hidden; /* Enable vertical scrolling if content exceeds the maximum height */
+  }

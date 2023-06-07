@@ -2,10 +2,37 @@
 
 let rawData = null;
 let title = null;
-const uploadButton = document.getElementById("uploadButton");
+// const uploadButton = document.getElementById("uploadButton");
 const preview = document.getElementById('data-preview');
+const descriptive = document.getElementById('descriptive-overview');
+const predictive = document.getElementById('predictive-overview');
+const tableContainer = document.getElementById('table-container');
+
 const columns = [];
 const finalizeButton = document.getElementById('finalize-btn');
+const fileUpload = document.getElementById("csvFileInput");
+
+const previewButton = document.getElementById('preview-btn');
+const descriptiveButton = document.getElementById('descriptive-btn');
+const predictiveButton = document.getElementById('predictive-btn');
+
+function hideShowSections(hidden1, hidden2, show) {
+    hidden1.style.display = "none"
+    hidden2.style.display = "none"
+    show.style.display = "block"
+}
+previewButton.addEventListener("click", () => {
+    hideShowSections(descriptive, predictive, preview);
+})
+
+descriptiveButton.addEventListener("click", () => {
+    hideShowSections(predictive, preview, descriptive);
+})
+
+predictiveButton.addEventListener("click", () => {
+    hideShowSections(preview, descriptive, predictive);
+})
+
 
 finalizeButton.addEventListener("click", () => {
     finalData();
@@ -13,7 +40,8 @@ finalizeButton.addEventListener("click", () => {
 })
 
 
-uploadButton.addEventListener("click", function() {
+// uploadButton.addEventListener("click", function() {
+fileUpload.addEventListener("change", function() {
     preview.innerHTML = '';
     const fileInput = document.getElementById("csvFileInput");
     title = fileInput.value.split('\\').pop().replace('.csv', '');
@@ -49,8 +77,10 @@ function sendJsonDataToBackend(jsonData) {
     // Send JSON data to the backend using an HTTP request
     // You can use the fetch API or XMLHttpRequest
 
+    console.log(jsonData);
+
     // Example using fetch API:
-    fetch("/api/upload", {
+    fetch("/api/analysis1", {
         method: "POST",
         headers: {
         "Content-Type": "application/json"
@@ -60,12 +90,146 @@ function sendJsonDataToBackend(jsonData) {
     .then(response => response.json())
     .then(data => {
         // Handle the response from the backend
-        // console.log(data);
+        console.log(data);
+
+        hideShowSections(predictive, preview, descriptive);
+
+        createTable(data.data.descriptive, tableContainer);
+
+        requestImage2(`/api/get_image?path=${data.urls.heatMap}`,'heatmap-container', 'chart');
+        const histos = data.urls.hist;
+        const boxes = data.urls.box;
+
+        for (let i = 0; i < histos.length; i++) {
+            // requestImage(`/api/get_image?path=${histos[i]}`)
+            requestImage2(`/api/get_image?path=${histos[i]}`, 'hist-container', 'chart-small');
+        }
+
+        for (let i = 0; i < histos.length; i++) {
+            // requestImage(`/api/get_image?path=${histos[i]}`)
+            requestImage2(`/api/get_image?path=${histos[i]}`, 'hist-container', 'chart-small');
+        }
+
+        for (let i = 0; i < boxes.length; i++) {
+            // requestImage(`/api/get_image?path=${histos[i]}`)
+            requestImage2(`/api/get_image?path=${boxes[i]}`, 'box-container', 'chart-small');
+        }
     })
     .catch(error => {
         // Handle any errors
         console.error(error);
     });
+}
+
+
+function createTable(data, parent) {
+    console.log('Creating Table!');
+    const table = document.createElement('table');
+    table.className = 'table table-striped';
+    parent.appendChild(table);
+    console.log(table);
+    const header = document.createElement('thead');
+    table.appendChild(header);
+    const firstRow = document.createElement('tr');
+    header.appendChild(firstRow);
+
+
+    for (let i = 0; i <data[0].length; i++) {
+
+        addTableData('th', data[0][i], firstRow, 'col');
+
+    }
+
+    const body = document.createElement('tbody');
+    table.appendChild(body);
+
+    for (let i = 1; i <data.length; i++) {
+        const newRow = document.createElement('tr');
+        body.appendChild(newRow);
+
+        for (let j = 0; j <data[i].length; j++) {
+            console.log(data[i][j]);
+            if (j === 0) {
+                addTableData('th', data[i][j], newRow, 'row');
+
+            } else {
+                addTableData('td', data[i][j], newRow, '');
+            }
+    
+        }
+
+    }
+
+
+}
+
+
+function addTableData(tag, value, parent, scope) {
+    const tableData = document.createElement(tag);
+    tableData.textContent = value;
+    if (scope === 'col' || scope === 'row') {
+        tableData.scope = scope;
+    }
+
+    parent.appendChild(tableData);
+
+    // tableData.addEventListener("mouseover", () => {
+    //     tableData.classList.add('hightlight');
+
+    // });
+
+    // tableData.addEventListener('mouseout', () => {
+    //     td.classList.remove('highlight');
+    //   });
+
+}
+
+
+function requestImage(url) {
+    fetch(url)
+        .then(response => response.blob())
+        .then(blob => {
+        const imageUrl = URL.createObjectURL(blob);
+        const imageElement = document.createElement('img');
+        imageElement.src = url;
+        descriptive.appendChild(imageElement);
+        })
+        .catch(error => {
+        console.error('Error:', error);
+        });
+}
+
+function requestImage2(url, targetId, imgClass) {
+    fetch(url)
+        .then(response => response.blob())
+        .then(blob => {
+        const imageUrl = URL.createObjectURL(blob);
+        const imageElement = document.createElement('img');
+        imageElement.src = url;
+        imageElement.className = imgClass;
+        const targetElement = document.getElementById(targetId);
+        targetElement.appendChild(imageElement);
+
+        imageElement.addEventListener('click', function() {
+            const enlargedChart = document.createElement('img');
+            enlargedChart.src = imageElement.src;
+            enlargedChart.className = 'enlarged-chart';
+          
+            // const container = document.querySelector(targetId);
+            const container = document.getElementById('small-section');
+            container.appendChild(enlargedChart);
+          
+            enlargedChart.addEventListener('click', function() {
+              container.removeChild(enlargedChart);
+            });
+          });
+
+
+        })
+        .catch(error => {
+        console.error('Error:', error);
+        });
+
 }
 
 function dynamicElement(tag, className, id, parent) {
@@ -106,7 +270,8 @@ function previewJson(jsonData) {
         row.textContent = jsonData[0][i];
         row.id = jsonData[0][i];
         headerRow.appendChild(row);
-        const card = createAdjustmentCard(jsonData[0][i], preview, i+1);
+        console.log(jsonData[1][i]);
+        const card = createAdjustmentCard(jsonData[0][i], preview, i+1, jsonData[1][i]);
         columns.push(jsonData[0][i]);
 
 
@@ -129,10 +294,13 @@ function previewJson(jsonData) {
             const colWidth = (rect.right - rect.left);
 
             const card = document.getElementById(`card-${jsonData[0][i]}`);
+            card.style.position = 'absolute';
             card.style.width = `${colWidth}px`;
+            // card.style.width = '100px';
             card.style.display = "flex";
             card.style.left = `${absoluteLeft}px`;
-            card.style.bottom = `${rect.bottom-50}px`;
+            card.style.bottom = `${rect.top-50}px`;
+            // card.style.bottom = '20px';
             
         })
     }
@@ -164,7 +332,7 @@ function previewJson(jsonData) {
 }
 
 
-function createAdjustmentCard(columnName, parent, columnNumber) {
+function createAdjustmentCard(columnName, parent, columnNumber, value) {
 
     const card = dynamicElement('div', 'card', `card-${columnName}`, parent);
     const body = dynamicElement('div', 'card-body', `card-body-${columnName}`, card);
@@ -183,7 +351,7 @@ function createAdjustmentCard(columnName, parent, columnNumber) {
     label2.for = `dataType-${columnName}`;
     label2.textContent='Data Type';
     form2.appendChild(label2);
-    const col = dynamicElement('div', 'col-sm-3', `col-${columnName}`, form2);
+    const col = dynamicElement('div', 'col-sm-6', `col-${columnName}`, form2);
     const dataType = dynamicElement('select', 'form-control', `dataType-${columnName}`, col);
     const dtypes = ['Text', 'Integer', 'Float', 'Date']
     for (let i = 0; i < dtypes.length; i++) {
@@ -194,6 +362,10 @@ function createAdjustmentCard(columnName, parent, columnNumber) {
         // col.appendChild(option);
 
     }
+    if (isNaN(value) === false) {
+        dataType.value = 'Float';
+    }
+    
     // const checkboxContainer = dynamicElement('div', 'checkbox-container', `checkbox-container-${columnName}`, body);
     const form3 = dynamicElement('div', 'form-group', `card-form3-${columnName}`, body);
     const input3 = dynamicElement('input', 'form-check-input', `checkbox1-${columnName}`, form3);
